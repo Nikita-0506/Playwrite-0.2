@@ -9,6 +9,7 @@ import java.util.Properties;
 
 public class BaseClass {
 	private final Properties locators = new Properties();
+	@SuppressWarnings("unused")
 	private static int counter = 0;
 
 	public BaseClass() {
