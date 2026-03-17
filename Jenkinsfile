@@ -131,7 +131,7 @@ pipeline {
             //         
             //         View Reports: ${env.BUILD_URL}
             //     """,
-            //     to: 'your-email@example.com',
+            //     to: 'ndpachkate17801@gmail.com',
             //     attachLog: false
             // )
         }
@@ -149,7 +149,7 @@ pipeline {
             //         
             //         Check Console Output: ${env.BUILD_URL}console
             //     """,
-            //     to: 'your-email@example.com',
+            //     to: 'ndpachkate17801@gmail.com',
             //     attachLog: true
             // )
         }
