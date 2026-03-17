@@ -30,14 +30,15 @@ pipeline {
             }
         }
 
-        stage('Install Playwright') {
-            steps {
-                echo '🎭 Installing Playwright browsers...'
-                bat '''
-                    mvn exec:java -e -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install"
-                '''
-            }
-        }
+        // Browsers already installed manually on Jenkins agent
+        // stage('Install Playwright') {
+        //     steps {
+        //         echo '🎭 Installing Playwright browsers...'
+        //         bat '''
+        //             mvn exec:java -e -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install"
+        //         '''
+        //     }
+        // }
 
         stage('Run Tests') {
             steps {
