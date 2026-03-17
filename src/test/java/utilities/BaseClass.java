@@ -17,8 +17,7 @@ public class BaseClass {
 			locators.load(getClass().getClassLoader().getResourceAsStream("repository/locators.properties"));
 
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new RuntimeException("Failed to load locators.properties file from repository folder", e);
 		}
 	}
 
