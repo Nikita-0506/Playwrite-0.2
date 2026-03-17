@@ -80,7 +80,7 @@ pipeline {
                 reportDir: 'target/cucumber-reports',
                 reportFiles: 'index.html',
                 reportName: 'Cucumber HTML Report',
-                reportTitle: 'Test Report'
+                reportTitles: 'Test Report'
             ])
 
             // Publish Surefire HTML Report
@@ -91,7 +91,7 @@ pipeline {
                 reportDir: 'target/surefire-reports',
                 reportFiles: 'index.html',
                 reportName: 'Surefire HTML Report',
-                reportTitle: 'Surefire Report'
+                reportTitles: 'Surefire Report'
             ])
 
             // Publish ExtentReports (Spark Reports)
@@ -102,7 +102,7 @@ pipeline {
                 reportDir: 'test-output',
                 reportFiles: '**/Report/TestRunReport.html',
                 reportName: 'ExtentReports',
-                reportTitle: 'Extent Test Report'
+                reportTitles: 'Extent Test Report'
             ])
 
             // Archive all reports as artifacts
