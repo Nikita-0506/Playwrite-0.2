@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        maven 'Maven'
-    }
-
     triggers {
         // Poll GitHub every 15 minutes for changes
         pollSCM('H/15 * * * *')
