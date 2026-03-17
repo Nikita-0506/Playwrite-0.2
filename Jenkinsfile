@@ -3,6 +3,7 @@ pipeline {
 
     tools {
         maven 'Maven'
+        jdk 'Java21'
     }
 
     triggers {
@@ -30,15 +31,14 @@ pipeline {
             }
         }
 
-        // Browsers already installed manually on Jenkins agent
-        // stage('Install Playwright') {
-        //     steps {
-        //         echo '🎭 Installing Playwright browsers...'
-        //         bat '''
-        //             mvn exec:java -e -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install"
-        //         '''
-        //     }
-        // }
+        stage('Install Playwright') {
+            steps {
+                echo '🎭 Installing Playwright browsers...'
+                bat '''
+                    mvn exec:java -e -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install"
+                '''
+            }
+        }
 
         stage('Run Tests') {
             steps {

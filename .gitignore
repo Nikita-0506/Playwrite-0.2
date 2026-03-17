@@ -31,3 +31,12 @@ Thumbs.db
 # Playwright
 .playwright/
 playwright/.cache/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+
+# Test Reports
+report.html
+assets/
