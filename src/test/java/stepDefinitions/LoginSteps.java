@@ -22,7 +22,7 @@ public class LoginSteps {
 
 	String url = "";
 	private static final Logger log = LogManager.getLogger(LoginSteps.class);
-	private final int timeout = 15000; // 15 seconds in milliseconds
+	private final int timeout = 45000; // 45 seconds in milliseconds (increased for slow SPA rendering)
 	BaseClass base;
 
 	public LoginSteps() {
