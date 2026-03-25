@@ -94,7 +94,7 @@
     - Build tool: `C:\Program Files\apache-maven-3.9.13\bin\mvn`
     - Result: ✅ Maven 3.9.13 / Java 21.0.9 confirmed
   - **Deferred Work**: None
-  - **Commit**: (pending with progress.md)
+  - **Commit**: b719417 - Step 3: Upgrade maven-surefire-plugin 3.0.0-M9→3.2.5 (includes pre-applied Java 21 changes)
 
 - **Step 2: Setup Baseline**
   - **Status**: ✅ Completed
@@ -111,91 +111,32 @@
     - Build tool: `C:\Program Files\apache-maven-3.9.13\bin\mvn`
     - Result: ✅ BUILD SUCCESS — all source and test classes compile with Java 21
   - **Deferred Work**: None
-  - **Commit**: (pending with progress.md)
-  For each step in plan.md, track progress using this bullet list format:
+  - **Commit**: b719417 (same commit — Steps 1–3 grouped)
 
-  - **Step N: <Step Title>**
-    - **Status**: <status emoji>
-      - 🔘 Not Started - Step has not been started yet
-      - ⏳ In Progress - Currently working on this step
-      - ✅ Completed - Step completed successfully
-      - ❗ Failed - Step failed after exhaustive attempts
-    - **Changes Made**: (≤5 bullets, keep each ≤20 words)
-      - Focus on what changed, not how
-    - **Review Code Changes**:
-      - Sufficiency: ✅ All required changes present / ⚠️ <list missing changes added, short and concise>
-      - Necessity: ✅ All changes necessary / ⚠️ <list unnecessary changes reverted, short and concise>
-        - Functional Behavior: ✅ Preserved / ⚠️ <list unavoidable changes with justification, short and concise>
-        - Security Controls: ✅ Preserved / ⚠️ <list unavoidable changes with justification and equivalent protection, short and concise>
-    - **Verification**:
-      - Command: <actual command executed>
-      - JDK: <JDK path used>
-      - Build tool: <Path of build tool used>
-      - Result: <SUCCESS/FAILURE with details>
-      - Notes: <any skipped checks, excluded modules, known issues>
-    - **Deferred Work**: List any deferred work, temporary workarounds (or "None")
-    - **Commit**: <commit hash> - <commit message first line>  <!-- use "N/A - not version-controlled" when GIT_AVAILABLE=false -->
+- **Step 3: Upgrade maven-surefire-plugin to 3.2.5**
+  - **Status**: ✅ Completed
+  - **Changes Made**:
+    - `pom.xml`: `maven-surefire-plugin` `3.0.0-M9` → `3.2.5`
+  - **Review Code Changes**:
+    - Sufficiency: ✅ Single plugin version bump; all configuration preserved intact
+    - Necessity: ✅ Upgrade from milestone to GA — no behavioral changes, only stability improvement
+      - Functional Behavior: ✅ Preserved — same `suiteXmlFiles` / `systemPropertyVariables` config retained
+      - Security Controls: ✅ N/A — test runner plugin, no security controls affected
+  - **Verification**:
+    - Command: `mvn clean test-compile -q`
+    - JDK: `C:\Program Files\Java\jdk-21`
+    - Build tool: `C:\Program Files\apache-maven-3.9.13\bin\mvn`
+    - Result: ✅ BUILD SUCCESS — no regression
+  - **Deferred Work**: None
+  - **Commit**: b719417 - Step 3: Upgrade maven-surefire-plugin to 3.2.5 - Compile: SUCCESS
 
-  ---
 
-  SAMPLE UPGRADE STEP:
-
-  - **Step X: Upgrade to Spring Boot 2.7.18**
-    - **Status**: ✅ Completed
-    - **Changes Made**:
-      - spring-boot-starter-parent 2.5.0→2.7.18
-      - Fixed 3 deprecated API usages
-    - **Review Code Changes**:
-      - Sufficiency: ✅ All required changes present
-      - Necessity: ✅ All changes necessary
-        - Functional Behavior: ✅ Preserved - API contracts and business logic unchanged
-        - Security Controls: ✅ Preserved - authentication, authorization, and security configs unchanged
-    - **Verification**:
-      - Command: `mvn clean test-compile -q` // compile only
-      - JDK: /usr/lib/jvm/java-8-openjdk
-      - Build tool: /usr/local/maven/bin/mvn
-      - Result: ✅ Compilation SUCCESS | ⚠️ Tests: 145/150 passed (5 failures deferred to Final Validation)
-      - Notes: 5 test failures related to JUnit vintage compatibility
-    - **Deferred Work**: Fix 5 test failures in Final Validation step (TestUserService, TestOrderProcessor)
-    - **Commit**: ghi9012 - Step X: Upgrade to Spring Boot 2.7.18 - Compile: SUCCESS | Tests: 145/150 passed
-
-  ---
-
-  SAMPLE FINAL VALIDATION STEP:
-
-  - **Step X: Final Validation**
-    - **Status**: ✅ Completed
-    - **Changes Made**:
-      - Verified target versions: Java 21, Spring Boot 3.2.5
-      - Resolved 3 TODOs from Step 4
-      - Fixed 8 test failures (5 JUnit migration, 2 Hibernate query, 1 config)
-    - **Review Code Changes**:
-      - Sufficiency: ✅ All required changes present
-      - Necessity: ✅ All changes necessary
-        - Functional Behavior: ✅ Preserved - all business logic and API contracts maintained
-        - Security Controls: ✅ Preserved - all authentication, authorization, password handling unchanged
-    - **Verification**:
-      - Command: `mvn clean test -q` // run full test suite, this will also compile
-      - JDK: /home/user/.jdk/jdk-21.0.3
-      - Result: ✅ Compilation SUCCESS | ✅ Tests: 150/150 passed (100% pass rate achieved)
-    - **Deferred Work**: None - all TODOs resolved
-    - **Commit**: xyz3456 - Step X: Final Validation - Compile: SUCCESS | Tests: 150/150 passed
--->
 
 ---
 
 ## Notes
 
-<!--
-  Additional context, observations, or lessons learned during execution.
-  Use this section for:
-  - Unexpected challenges encountered
-  - Deviation from original plan
-  - Performance observations
-  - Recommendations for future upgrades
-
-  SAMPLE:
-  - OpenRewrite's jakarta migration recipe saved ~4 hours of manual work
-  - Hibernate 6 query syntax changes were more extensive than anticipated
-  - JUnit 5 migration was straightforward thanks to Spring Boot 2.7.x compatibility layer
--->
+- Steps 1–3 (Environment setup, baseline validation, surefire upgrade) grouped into single commit b719417.
+- All pre-applied pom.xml changes (compiler 17→21, Lombok 1.18.30, `release=21`) compiled cleanly with zero errors.
+- The `.github/java-upgrade` directory is in `.gitignore`; tracking files force-committed with `git add -f`.
+- Step 4 (Final Validation) requires a live browser environment for Playwright — see Step 4 entry.
