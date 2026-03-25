@@ -20,12 +20,7 @@ pipeline {
     }
 
     environment {
-        MAVEN_OPTS    = '-Xmx1024m'
-        // S3 bucket where reports are uploaded after every build.
-        // Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY as Jenkins credentials (secret text).
-        S3_BUCKET     = 'your-s3-bucket-name'          // <-- replace with your bucket name
-        S3_REGION     = 'us-east-1'                     // <-- replace with your bucket region
-        S3_REPORT_PREFIX = "reports/${env.JOB_NAME}/${env.BUILD_NUMBER}"
+        MAVEN_OPTS = '-Xmx1024m'
     }
 
     stages {
@@ -67,31 +62,6 @@ pipeline {
             steps {
                 echo '🚀 Deploying application...'
                 // Your deployment steps here
-            }
-        }
-
-        stage('Upload Reports to S3') {
-            steps {
-                echo '☁️ Uploading test reports to S3...'
-                withCredentials([
-                    string(credentialsId: 'AWS_ACCESS_KEY_ID',     variable: 'AWS_ACCESS_KEY_ID'),
-                    string(credentialsId: 'AWS_SECRET_ACCESS_KEY', variable: 'AWS_SECRET_ACCESS_KEY')
-                ]) {
-                    script {
-                        def s3Path = "s3://${S3_BUCKET}/${S3_REPORT_PREFIX}"
-                        // Upload Extent Spark Report
-                        bat "aws s3 cp test-output/SparkReports/Report/TestRunReport.html ${s3Path}/extent/TestRunReport.html --region ${S3_REGION} || echo Extent report not found, skipping"
-                        // Upload screenshots
-                        bat "aws s3 cp test-output/SparkReports/Screenshots/ ${s3Path}/extent/Screenshots/ --recursive --region ${S3_REGION} || echo Screenshots not found, skipping"
-                        // Upload Cucumber JSON report
-                        bat "aws s3 cp target/cucumber-reports/Cucumber.json ${s3Path}/cucumber/Cucumber.json --region ${S3_REGION} || echo Cucumber JSON not found, skipping"
-                        // Upload JaCoCo HTML coverage report
-                        bat "aws s3 cp target/site/jacoco/ ${s3Path}/jacoco/ --recursive --region ${S3_REGION} || echo JaCoCo report not found, skipping"
-                        // Upload Surefire XML results
-                        bat "aws s3 cp target/surefire-reports/ ${s3Path}/surefire/ --recursive --region ${S3_REGION} || echo Surefire reports not found, skipping"
-                        echo "✅ Reports uploaded to ${s3Path}"
-                    }
-                }
             }
         }
     }
