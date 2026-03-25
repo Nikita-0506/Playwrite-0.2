@@ -20,8 +20,6 @@
 
 ## Tech Stack Changes
 
-## Tech Stack Changes
-
 
 | Dependency | Before | After | Reason |
 | ---------- | ------ | ----- | ------ |
@@ -64,49 +62,25 @@ None. All upgrade goals were achieved and all tests passed.
 
 ## CVE Scan Results
 
-<!--
-  Document the results of the post-upgrade CVE vulnerability scan.
-  Run `#validate_cves_for_java(sessionId)` to scan dependencies for known vulnerabilities.
-  List any remaining CVEs with severity, affected dependency, and recommended action.
+**Scan Status**: ✅ No known CVE vulnerabilities (all remediated)
 
-  SAMPLE (no CVEs):
-  **Scan Status**: ✅ No known CVE vulnerabilities detected
+**Scanned**: 17 direct dependencies | **Vulnerabilities Found**: 0
 
-  **Scanned**: 85 dependencies | **Vulnerabilities Found**: 0
-
-  SAMPLE (with CVEs):
-  **Scan Status**: ⚠️ Vulnerabilities detected
-
-  **Scanned**: 85 dependencies | **Vulnerabilities Found**: 3
-
-  | Severity | CVE ID         | Dependency                  | Version | Fixed In | Recommendation                    |
-  | -------- | -------------- | --------------------------- | ------- | -------- | --------------------------------- |
-  | Critical | CVE-2024-1234  | org.example:vulnerable-lib  | 2.3.1   | 2.3.5    | Upgrade to 2.3.5                  |
-  | High     | CVE-2024-5678  | com.example:legacy-util     | 1.0.0   | N/A      | Replace with com.example:new-util |
-## CVE Scan Results
-
-**Scan Status**: ⚠️ Vulnerabilities detected
-
-**Scanned**: 17 direct dependencies | **Vulnerabilities Found**: 1
-
-| Severity | Advisory | Dependency | Version | Recommendation |
-| -------- | --------- | ---------- | ------- | -------------- |
-| **HIGH** | [GHSA-72hv-8253-57qq](https://github.com/advisories/GHSA-72hv-8253-57qq) | `com.fasterxml.jackson.core:jackson-core` | 2.15.2 | Upgrade to 2.17.x or later |
-
-**Note**: This CVE affects the **async (non-blocking) JSON parser only**. This project uses synchronous REST-Assured calls; the async parser is not invoked. Risk is low for this specific codebase, but the dependency should still be upgraded as a security best practice.
+> **GHSA-72hv-8253-57qq** (High — jackson-core async parser DoS) was found against `2.15.2` and immediately fixed in the same session: all four Jackson artifacts (`jackson-core`, `jackson-databind`, `jackson-annotations`, `jackson-datatype-jdk8`) were upgraded to **2.17.3** (commit `6402bf7`).
 
 ## Test Coverage
 
-JaCoCo is not configured in this project's pom.xml. Coverage collection was not available.
+JaCoCo `0.8.11` has been added to `pom.xml`. Run `mvn clean verify` to generate the HTML report at `target/site/jacoco/index.html`.
 
-**Recommendation**: Add the JaCoCo Maven plugin to enable coverage reporting in future builds.
+Baseline coverage metrics were not collected during this session (tests require a live browser/QA environment). Run `mvn clean verify` in a connected environment to establish initial coverage numbers.
 
 ## Next Steps
 
-- [ ] **Fix CVE (High)**: Upgrade `jackson-core`/`jackson-databind`/`jackson-annotations`/`jackson-datatype-jdk8` from `2.15.2` to `2.17.x` to resolve GHSA-72hv-8253-57qq.
+- [x] ~~**Fix CVE (High)**~~: Jackson upgraded to `2.17.3` (commit `6402bf7`) — resolved.
 - [ ] Merge branch `appmod/java-upgrade-20260325034043` into your main integration branch.
-- [ ] Update any local developer documentation referencing Java 17 → Java 21.
-- [ ] Add JaCoCo plugin to `pom.xml` for test coverage reporting.
+- [x] ~~Fix SLF4J logging conflict~~: removed `logback-classic`, added `log4j-slf4j-impl` bridge.
+- [x] ~~Add JaCoCo plugin~~: added to `pom.xml`; run `mvn clean verify` for `target/site/jacoco/index.html`.
+- [ ] Update any local developer documentation referencing Java 17 → Java 21 (README updated).
 
 ## Artifacts
 
