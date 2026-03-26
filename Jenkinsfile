@@ -6,24 +6,31 @@ pipeline {
         jdk 'Java21'
     }
 
+    // ✅ GitHub Webhook Trigger (no polling)
     triggers {
-        // Poll GitHub exactly every 5 minutes for changes
-        pollSCM('*/5 * * * *')
-        
-        // Alternatively, use cron for scheduled builds regardless of changes:
-        // cron('H 9,17 * * 1-5')  // Run at 9 AM and 5 PM on weekdays
+        githubPush()
     }
 
     parameters {
-        choice(name: 'BROWSER', choices: ['Chrome', 'Firefox'], description: 'Select browser to run tests')
+        choice(name: 'BROWSER', choices: ['Chrome', 'Firefox'], description: 'Select browser')
         choice(name: 'ENV', choices: ['QA', 'DEV', 'PROD'], description: 'Select environment')
     }
 
     environment {
+        // AWS Config
+        AWS_REGION = 'ap-south-1'
+        S3_BUCKET = 'qa-accelerator-inadev'
+        S3_PREFIX = 'all_reports'
+
+        // Maven memory
         MAVEN_OPTS = '-Xmx1024m'
+
+        // Timestamp (safe way)
+        BUILD_TIMESTAMP = "${new Date().format('yyyy-MM-dd_HH-mm-ss')}"
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 echo '🔍 Checking out code from GitHub...'
@@ -33,142 +40,166 @@ pipeline {
 
         stage('Install Playwright') {
             steps {
-                echo '🎭 Installing Playwright browsers...'
-                bat '''
-                    mvn exec:java -e -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install"
-                '''
+                echo '🎭 Installing Playwright...'
+                script {
+                    if (isUnix()) {
+                        sh 'mvn exec:java -e -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install"'
+                    } else {
+                        bat 'mvn exec:java -e -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install"'
+                    }
+                }
             }
         }
 
         stage('Run Tests') {
             steps {
-                echo '🧪 Running Playwright tests...'
-                echo "Browser: ${params.BROWSER}"
-                echo "Environment: ${params.ENV}"
+                echo "🧪 Running Tests on ${params.BROWSER} in ${params.ENV}"
                 script {
-                    // Run verify (not just test) so JaCoCo report is generated in target/site/jacoco
-                    def testResult = bat(script: "mvn clean verify -Dbrowser=${params.BROWSER} -Denv=${params.ENV}", returnStatus: true)
-                    
-                    // Explicitly fail if tests failed
-                    if (testResult != 0) {
+                    def status
+                    if (isUnix()) {
+                        status = sh(script: "mvn clean verify -Dbrowser=${params.BROWSER} -Denv=${params.ENV}", returnStatus: true)
+                    } else {
+                        status = bat(script: "mvn clean verify -Dbrowser=${params.BROWSER} -Denv=${params.ENV}", returnStatus: true)
+                    }
+
+                    if (status != 0) {
                         currentBuild.result = 'FAILURE'
                         error("❌ Tests failed! Stopping pipeline.")
                     }
                 }
             }
         }
-        
+
+        stage('Upload Reports to S3') {
+            steps {
+                echo '📤 Uploading reports to S3...'
+                script {
+                    try {
+                        def s3Path = "s3://${S3_BUCKET}/${S3_PREFIX}/build-${BUILD_NUMBER}/${BUILD_TIMESTAMP}"
+
+                        if (isUnix()) {
+                            sh """
+                                mkdir -p essential-reports
+
+                                cp -r target/surefire-reports/* essential-reports/ || true
+                                cp -r target/cucumber-reports/* essential-reports/ || true
+                                cp -r target/site/jacoco/* essential-reports/ || true
+                                cp -r test-output/SparkReports/* essential-reports/ || true
+
+                                cat > essential-reports/build-metadata.json <<EOF
+{
+  "build_number": "${BUILD_NUMBER}",
+  "status": "${currentBuild.result ?: 'SUCCESS'}",
+  "browser": "${params.BROWSER}",
+  "environment": "${params.ENV}",
+  "timestamp": "${BUILD_TIMESTAMP}",
+  "job": "${JOB_NAME}",
+  "url": "${BUILD_URL}",
+  "git_branch": "${GIT_BRANCH}",
+  "git_commit": "${GIT_COMMIT}"
+}
+EOF
+
+                                aws s3 cp essential-reports ${s3Path}/ --recursive --region ${AWS_REGION}
+                            """
+                        } else {
+                            bat """
+                                mkdir essential-reports
+
+                                xcopy target\\surefire-reports essential-reports /E /I /Y
+                                xcopy target\\cucumber-reports essential-reports /E /I /Y
+                                xcopy target\\site\\jacoco essential-reports /E /I /Y
+                                xcopy test-output\\SparkReports essential-reports /E /I /Y
+
+                                echo { > essential-reports\\build-metadata.json
+                                echo   "build_number": "${BUILD_NUMBER}", >> essential-reports\\build-metadata.json
+                                echo   "status": "${currentBuild.result ?: 'SUCCESS'}" >> essential-reports\\build-metadata.json
+                                echo } >> essential-reports\\build-metadata.json
+
+                                aws s3 cp essential-reports ${s3Path}/ --recursive --region ${AWS_REGION}
+                            """
+                        }
+
+                        def url = "https://${S3_BUCKET}.s3.${AWS_REGION}.amazonaws.com/${S3_PREFIX}/build-${BUILD_NUMBER}/${BUILD_TIMESTAMP}"
+                        echo "📊 S3 Reports: ${url}"
+
+                    } catch (Exception e) {
+                        echo "⚠️ S3 Upload Failed: ${e.message}"
+                        currentBuild.result = 'UNSTABLE'
+                    }
+                }
+            }
+        }
+
         stage('Deploy') {
+            when {
+                expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' }
+            }
             steps {
                 echo '🚀 Deploying application...'
-                // Your deployment steps here
+                // Add deployment steps here
             }
         }
     }
 
     post {
-        always {
-            echo '📊 Publishing test results and reports...'
 
-            // Publish JUnit XML test results
+        always {
+            echo '📊 Publishing Reports...'
+
             junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
 
-            // Publish Cucumber HTML Report (if it exists)
             publishHTML([
                 allowMissing: true,
                 alwaysLinkToLastBuild: true,
                 keepAll: true,
                 reportDir: 'target/cucumber-reports',
                 reportFiles: 'index.html',
-                reportName: 'Cucumber HTML Report',
-                reportTitles: 'Test Report'
+                reportName: 'Cucumber Report'
             ])
 
-            // Publish Surefire HTML Report
             publishHTML([
                 allowMissing: true,
                 alwaysLinkToLastBuild: true,
                 keepAll: true,
                 reportDir: 'target/surefire-reports',
                 reportFiles: 'index.html',
-                reportName: 'Surefire HTML Report',
-                reportTitles: 'Surefire Report'
+                reportName: 'Surefire Report'
             ])
 
-            // Publish ExtentReports (Spark Reports)
-            // extent.properties outputs to test-output/SparkReports/Report/TestRunReport.html (fixed path, no timestamp)
             publishHTML([
                 allowMissing: true,
                 alwaysLinkToLastBuild: true,
                 keepAll: true,
                 reportDir: 'test-output/SparkReports',
                 reportFiles: 'Report/TestRunReport.html',
-                reportName: 'Extent Spark Report',
-                reportTitles: 'Extent Test Report'
+                reportName: 'Extent Report'
             ])
 
-            // Publish JaCoCo Coverage Report (generated by mvn verify)
             publishHTML([
                 allowMissing: true,
                 alwaysLinkToLastBuild: true,
                 keepAll: true,
                 reportDir: 'target/site/jacoco',
                 reportFiles: 'index.html',
-                reportName: 'JaCoCo Coverage Report',
-                reportTitles: 'Code Coverage'
+                reportName: 'JaCoCo Report'
             ])
 
-            // Archive all reports as artifacts
-            archiveArtifacts artifacts: '**/target/cucumber-reports/**/*.*', allowEmptyArchive: true
-            archiveArtifacts artifacts: '**/target/surefire-reports/**/*.*', allowEmptyArchive: true
-            archiveArtifacts artifacts: '**/target/site/jacoco/**/*.*', allowEmptyArchive: true
-            archiveArtifacts artifacts: '**/test-output/SparkReports/**/*.*', allowEmptyArchive: true
+            archiveArtifacts artifacts: '**/target/**/*.*, **/test-output/**/*.*', allowEmptyArchive: true
 
-            // Clean workspace after build
-            cleanWs(cleanWhenNotBuilt: false,
-                    deleteDirs: true,
-                    disableDeferredWipeout: true,
-                    notFailBuild: true,
-                    patterns: [[pattern: 'target/**', type: 'INCLUDE']])
+            cleanWs()
         }
+
         success {
-            echo '✅ Tests passed successfully!'
-            // Uncomment below to enable email notifications
-            // emailext(
-            //     subject: "✅ Jenkins Build SUCCESS - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-            //     body: """
-            //         Build Status: SUCCESS
-            //         Job: ${env.JOB_NAME}
-            //         Build Number: ${env.BUILD_NUMBER}
-            //         Browser: ${params.BROWSER}
-            //         Environment: ${params.ENV}
-            //         
-            //         View Reports: ${env.BUILD_URL}
-            //     """,
-            //     to: 'ndpachkate17801@gmail.com',
-            //     attachLog: false
-            // )
+            echo '✅ Build SUCCESS'
         }
+
         failure {
-            echo '❌ Tests failed! Pipeline stopped.'
-            // Uncomment below to enable email notifications
-            // emailext(
-            //     subject: "❌ Jenkins Build FAILED - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-            //     body: """
-            //         Build Status: FAILED
-            //         Job: ${env.JOB_NAME}
-            //         Build Number: ${env.BUILD_NUMBER}
-            //         Browser: ${params.BROWSER}
-            //         Environment: ${params.ENV}
-            //         
-            //         Check Console Output: ${env.BUILD_URL}console
-            //     """,
-            //     to: 'ndpachkate17801@gmail.com',
-            //     attachLog: true
-            // )
+            echo '❌ Build FAILED'
         }
+
         unstable {
-            echo '⚠️ Build is unstable!'
+            echo '⚠️ Build UNSTABLE'
         }
     }
 }
