@@ -48,21 +48,57 @@ pipeline {
         }
 
         stage('Run Tests') {
+            options {
+                timeout(time: 60, unit: 'MINUTES')
+                retry(1)
+            }
             steps {
                 echo "🧪 Running Tests on ${params.BROWSER} in ${params.ENV}"
                 script {
+                    // -Dmaven.test.failure.ignore=true ensures Maven always completes,
+                    // writes all Surefire/Cucumber XML reports, and generates Extent Report
+                    // even when tests fail — so downstream stages (S3 upload) always run.
+                    def mvnCmd = "mvn clean verify -Dbrowser=${params.BROWSER} -Denv=${params.ENV} " +
+                                 "-Dmaven.test.failure.ignore=true -Dsurefire.failIfNoSpecifiedTests=false"
+
                     def status
                     if (isUnix()) {
-                        status = sh(script: "mvn clean verify -Dbrowser=${params.BROWSER} -Denv=${params.ENV}", returnStatus: true)
+                        status = sh(script: mvnCmd, returnStatus: true)
                     } else {
-                        status = bat(script: "mvn clean verify -Dbrowser=${params.BROWSER} -Denv=${params.ENV}", returnStatus: true)
+                        status = bat(script: mvnCmd, returnStatus: true)
                     }
 
-                    if (status != 0) {
+                    // Parse Surefire XML to get actual test counts
+                    def xmlFiles = findFiles(glob: 'target/surefire-reports/TEST-*.xml')
+                    int totalTests = 0, failedTests = 0, skippedTests = 0
+
+                    for (def f : xmlFiles) {
+                        def content = readFile(f.path)
+                        def matcher = content =~ /tests="(\d+)"/
+                        if (matcher) totalTests += matcher[0][1].toInteger()
+                        matcher = content =~ /failures="(\d+)"/
+                        if (matcher) failedTests += matcher[0][1].toInteger()
+                        matcher = content =~ /errors="(\d+)"/
+                        if (matcher) failedTests += matcher[0][1].toInteger()
+                        matcher = content =~ /skipped="(\d+)"/
+                        if (matcher) skippedTests += matcher[0][1].toInteger()
+                    }
+
+                    int passedTests = totalTests - failedTests - skippedTests
+
+                    if (totalTests > 0) {
+                        echo "📊 Test Results: ${passedTests} passed | ${failedTests} failed | ${skippedTests} skipped | ${totalTests} total"
+                    }
+
+                    if (status != 0 && totalTests == 0) {
+                        // Maven failed before any tests ran → real build/compile error
                         currentBuild.result = 'FAILURE'
-                        echo "❌ Tests failed! Continuing pipeline..."
+                        error("❌ Maven build failed — no tests were executed (possible compile error or plugin failure)")
+                    } else if (failedTests > 0) {
+                        // Tests ran but some failed → mark UNSTABLE so pipeline continues for report upload
+                        unstable("⚠️ ${failedTests} test(s) failed out of ${totalTests} — reports will still be uploaded")
                     } else {
-                        echo "✅ Tests passed!"
+                        echo "✅ All ${passedTests} tests passed!"
                     }
                 }
             }
