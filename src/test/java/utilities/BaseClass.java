@@ -9,7 +9,6 @@ import java.util.Properties;
 
 public class BaseClass {
 	private final Properties locators = new Properties();
-	private static int counter = 0;
 
 	public BaseClass() {
 		try {
@@ -22,7 +21,11 @@ public class BaseClass {
 	}
 
 	public String getLocator(String key) {
-		return this.locators.get(key).toString();
+		Object value = this.locators.get(key);
+		if (value == null) {
+			throw new IllegalArgumentException("Locator key not found: '" + key + "'");
+		}
+		return value.toString();
 	}
 
 	public String createDynamicQueryXpath(String string, String toBeReplacedKey, String replacedValue) {
