@@ -174,12 +174,16 @@
 						</goals>
 					</execution>
 					<!-- Generates HTML/XML report at target/site/jacoco after verify -->
+					<!-- classesDirectory points to test-classes because this project has no src/main/java -->
 					<execution>
 						<id>report</id>
 						<phase>verify</phase>
 						<goals>
 							<goal>report</goal>
 						</goals>
+						<configuration>
+							<classesDirectory>${project.build.directory}/test-classes</classesDirectory>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
