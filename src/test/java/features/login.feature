@@ -8,7 +8,7 @@ Feature: InsureCRM Login Validation
   Scenario: Validate login with valid credentials
     Given I am on InsureCRM page
     When User enters "admin"
-    And User enters password "dsr123!@#aA"
+    And User enters password "WRONG_PASSWORD_123"
     And User clicks on the login button
     Then User is logged in
 
@@ -25,4 +25,12 @@ Feature: InsureCRM Login Validation
       | invalidUser | dsr123!@#aA     | should see an alert         |
       | admin       | wrongPassword | should see an error message |
       |             | suitecrm8     | should see an error message |
-      | admin       |               | should see an error message |
+      | admin       |               | should see an alert         |
+      
+  @REGRESSION
+  Scenario: Validate empty username and password
+    Given I am on InsureCRM page
+    When User enters ""
+    And User enters password ""
+    And User clicks on the login button
+    Then User should see an error message

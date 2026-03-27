@@ -22,7 +22,7 @@ public class LoginSteps {
 
 	String url = "";
 	private static final Logger log = LogManager.getLogger(LoginSteps.class);
-	private final int timeout = 45000; // 45 seconds in milliseconds (increased for slow SPA rendering)
+	private final int timeout = 15000; // 15 seconds in milliseconds
 	BaseClass base;
 
 	public LoginSteps() {
@@ -138,10 +138,11 @@ public class LoginSteps {
 				.setState(WaitForSelectorState.VISIBLE)
 				.setTimeout(timeout));
 			String errorMessage = errorElement.textContent();
-			Assert.assertFalse(errorMessage.isEmpty(), "Expected error message but none displayed");
+			Assert.assertTrue(!errorMessage.isEmpty(), "Expected error message but none displayed");
 			log.info("Error message displayed: " + errorMessage);
 		} catch (Exception e) {
 			log.error("Error message not found when expected", e);
+			throw new AssertionError("Error message validation failed. Reason: " + e.getMessage(), e);
 		}
 	}
 
@@ -153,11 +154,12 @@ public class LoginSteps {
 			alertElement.waitFor(new Locator.WaitForOptions()
 				.setState(WaitForSelectorState.VISIBLE)
 				.setTimeout(timeout));
-			String errorMessage = alertElement.textContent();
-			Assert.assertFalse(errorMessage.isEmpty(), "Expected alert but none displayed");
-			log.info("Alert displayed: " + errorMessage);
+			String alertMessage = alertElement.textContent();
+			Assert.assertTrue(!alertMessage.isEmpty(), "Expected alert but none displayed");
+			log.info("Alert displayed: " + alertMessage);
 		} catch (Exception e) {
 			log.error("Alert not found when expected", e);
+			throw new AssertionError("Alert validation failed. Reason: " + e.getMessage(), e);
 		}
 	}
 

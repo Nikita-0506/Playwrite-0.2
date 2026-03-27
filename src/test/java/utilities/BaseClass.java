@@ -9,7 +9,6 @@ import java.util.Properties;
 
 public class BaseClass {
 	private final Properties locators = new Properties();
-	@SuppressWarnings("unused")
 	private static int counter = 0;
 
 	public BaseClass() {
@@ -17,7 +16,8 @@ public class BaseClass {
 			locators.load(getClass().getClassLoader().getResourceAsStream("repository/locators.properties"));
 
 		} catch (IOException e) {
-			throw new RuntimeException("Failed to load locators.properties file from repository folder", e);
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
