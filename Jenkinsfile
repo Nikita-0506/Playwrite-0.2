@@ -69,19 +69,45 @@ pipeline {
                     }
 
                     // Parse Surefire XML to get actual test counts
-                    def xmlFiles = findFiles(glob: 'target/surefire-reports/TEST-*.xml')
+                    // Uses powershell/sh instead of findFiles (no Pipeline Utility Steps plugin needed)
                     int totalTests = 0, failedTests = 0, skippedTests = 0
-
-                    for (def f : xmlFiles) {
-                        def content = readFile(f.path)
-                        def matcher = content =~ /tests="(\d+)"/
-                        if (matcher) totalTests += matcher[0][1].toInteger()
-                        matcher = content =~ /failures="(\d+)"/
-                        if (matcher) failedTests += matcher[0][1].toInteger()
-                        matcher = content =~ /errors="(\d+)"/
-                        if (matcher) failedTests += matcher[0][1].toInteger()
-                        matcher = content =~ /skipped="(\d+)"/
-                        if (matcher) skippedTests += matcher[0][1].toInteger()
+                    try {
+                        def countOutput
+                        if (isUnix()) {
+                            countOutput = sh(returnStdout: true, script: '''
+                                T=0; F=0; S=0
+                                for f in target/surefire-reports/TEST-*.xml; do
+                                    [ -f "$f" ] || continue
+                                    t=$(grep -oP 'tests="\\K[0-9]+' "$f" | head -1); T=$((T + ${t:-0}))
+                                    fail=$(grep -oP 'failures="\\K[0-9]+' "$f" | head -1); F=$((F + ${fail:-0}))
+                                    err=$(grep -oP 'errors="\\K[0-9]+' "$f" | head -1); F=$((F + ${err:-0}))
+                                    skip=$(grep -oP 'skipped="\\K[0-9]+' "$f" | head -1); S=$((S + ${skip:-0}))
+                                done
+                                echo "$T,$F,$S"
+                            ''').trim()
+                        } else {
+                            countOutput = powershell(returnStdout: true, script: '''
+                                $t=0; $f=0; $s=0
+                                Get-ChildItem -Path "target\\surefire-reports" -Filter "TEST-*.xml" -ErrorAction SilentlyContinue | ForEach-Object {
+                                    try {
+                                        [xml]$xml = Get-Content $_.FullName -ErrorAction Stop
+                                        $suite = $xml.testsuite
+                                        $t += [int]($suite.tests)
+                                        $f += [int]($suite.failures) + [int]($suite.errors)
+                                        $s += [int]($suite.skipped)
+                                    } catch {}
+                                }
+                                Write-Output "$t,$f,$s"
+                            ''').trim()
+                        }
+                        if (countOutput?.contains(',')) {
+                            def parts = countOutput.split(',')
+                            totalTests  = parts[0].trim().toInteger()
+                            failedTests = parts[1].trim().toInteger()
+                            skippedTests = parts[2].trim().toInteger()
+                        }
+                    } catch (Exception parseEx) {
+                        echo "⚠️ Could not parse test counts: ${parseEx.message}"
                     }
 
                     int passedTests = totalTests - failedTests - skippedTests
