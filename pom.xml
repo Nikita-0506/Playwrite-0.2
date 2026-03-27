@@ -182,7 +182,12 @@
 							<goal>report</goal>
 						</goals>
 						<configuration>
-							<classesDirectory>${project.build.directory}/test-classes</classesDirectory>
+							<!-- Use test-classes since this project has no src/main/java -->
+							<classDirectories>
+								<fileSet>
+									<directory>${project.build.directory}/test-classes</directory>
+								</fileSet>
+							</classDirectories>
 						</configuration>
 					</execution>
 				</executions>
