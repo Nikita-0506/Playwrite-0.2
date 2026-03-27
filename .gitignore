@@ -40,3 +40,6 @@ __pycache__/
 # Test Reports
 report.html
 assets/
+
+# Java Upgrade Session Logs (auto-generated; not source-controlled)
+.github/java-upgrade/*/logs/
