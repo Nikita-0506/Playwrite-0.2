@@ -130,6 +130,14 @@
 			<version>2.19.0</version>
 		</dependency>
 
+		<!-- Lombok - explicit Java 21 compatible version to override transitive old version -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.34</version>
+			<scope>provided</scope>
+		</dependency>
+
 
 	</dependencies>
 	<build>
