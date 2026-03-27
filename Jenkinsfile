@@ -6,9 +6,12 @@ pipeline {
         jdk 'Java21'
     }
 
-    // ✅ GitHub Webhook Trigger (no polling)
     triggers {
-        githubPush()
+        // Poll GitHub exactly every 5 minutes for changes
+        pollSCM('*/5 * * * *')
+
+        // Alternatively, use cron for scheduled builds regardless of changes:
+        // cron('H 9,17 * * 1-5')  // Run at 9 AM and 5 PM on weekdays
     }
 
     parameters {

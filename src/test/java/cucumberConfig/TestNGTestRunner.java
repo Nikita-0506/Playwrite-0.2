@@ -10,7 +10,7 @@ import utilities.RetryFailure;
 //@Date: 3 Feb 2026
 //@Desc: This class holds runner class configurations
 
-
+//testing -----------hello
 @CucumberOptions(features="src/test/java/features",glue ={"stepDefinitions","utilities"}
 ,monochrome=true, tags ="@SMOKE",
 plugin= {"json:target/cucumber-reports/Cucumber.json","com.aventstack.extentreports.cucumber.adapter.ExtentCucumberAdapter:"})

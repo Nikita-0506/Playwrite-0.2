@@ -8,6 +8,7 @@ release.properties
 dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
 
 # IDE
 .vscode/
@@ -24,19 +25,34 @@ logs/
 # Test Output
 test-output/
 
+# Cucumber / Extent / Surefire Reports
+target/cucumber-reports/
+target/surefire-reports/
+allure-results/
+allure-report/
+
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
+*.tmp
+*.bak
+*.swp
 
 # Playwright
 .playwright/
 playwright/.cache/
+ms-playwright/
 
 # Python
 __pycache__/
 *.py[cod]
 *.pyc
 
-# Test Reports
-report.html
-assets/
+# Environment / Secrets
+.env
+.env.*
+!.env.example
+
+# Java Upgrade Session Logs (auto-generated; not source-controlled)
+.github/java-upgrade/*/logs/
