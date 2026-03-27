@@ -115,7 +115,7 @@ EOF
                                 xcopy target\\surefire-reports essential-reports /E /I /Y
                                 xcopy target\\cucumber-reports essential-reports /E /I /Y
                                 xcopy target\\site\\jacoco essential-reports /E /I /Y
-                                xcopy "test-output\SparkReports\*" essential-reports /E /I /Y
+                                xcopy "test-output\\SparkReports\\*" essential-reports /E /I /Y
 
                                 echo { > essential-reports\\build-metadata.json
                                 echo   "build_number": "${BUILD_NUMBER}", >> essential-reports\\build-metadata.json
