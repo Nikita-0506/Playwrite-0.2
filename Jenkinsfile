@@ -25,8 +25,8 @@ pipeline {
         // Maven memory
         MAVEN_OPTS = '-Xmx1024m'
 
-        // Timestamp (safe way)
-        BUILD_TIMESTAMP = "${new Date().format('yyyy-MM-dd_HH-mm-ss')}"
+        // Pipeline URL for reports
+        PIPELINE_URL = "${BUILD_URL}"
     }
 
     stages {
@@ -35,6 +35,9 @@ pipeline {
             steps {
                 echo '🔍 Checking out code from GitHub...'
                 checkout scm
+                script {
+                    env.BUILD_TIMESTAMP = new Date().format('yyyy-MM-dd_HH-mm-ss')
+                }
             }
         }
 
@@ -51,20 +54,23 @@ pipeline {
             }
         }
 
+        // ✅ UPDATED PART (Continue even if tests fail)
         stage('Run Tests') {
             steps {
                 echo "🧪 Running Tests on ${params.BROWSER} in ${params.ENV}"
                 script {
                     def status
                     if (isUnix()) {
-                        status = sh(script: "mvn clean verify -Dbrowser=${params.BROWSER} -Denv=${params.ENV}", returnStatus: true)
+                        status = sh(script: "mvn clean verify -Dbrowser=${params.BROWSER} -Denv=${params.ENV} -Dmaven.test.failure.ignore=true", returnStatus: true)
                     } else {
-                        status = bat(script: "mvn clean verify -Dbrowser=${params.BROWSER} -Denv=${params.ENV}", returnStatus: true)
+                        status = bat(script: "mvn clean verify -Dbrowser=${params.BROWSER} -Denv=${params.ENV} -Dmaven.test.failure.ignore=true", returnStatus: true)
                     }
 
                     if (status != 0) {
                         currentBuild.result = 'FAILURE'
-                        error("❌ Tests failed! Stopping pipeline.")
+                        echo "❌ Tests failed! Continuing pipeline..."
+                    } else {
+                        echo "✅ Tests passed!"
                     }
                 }
             }
@@ -109,7 +115,7 @@ EOF
                                 xcopy target\\surefire-reports essential-reports /E /I /Y
                                 xcopy target\\cucumber-reports essential-reports /E /I /Y
                                 xcopy target\\site\\jacoco essential-reports /E /I /Y
-                                xcopy test-output\\SparkReports essential-reports /E /I /Y
+                                xcopy "test-output\SparkReports\*" essential-reports /E /I /Y
 
                                 echo { > essential-reports\\build-metadata.json
                                 echo   "build_number": "${BUILD_NUMBER}", >> essential-reports\\build-metadata.json

@@ -21,8 +21,10 @@ public class DriverManager {
 		playwright.set(Playwright.create());
 
 		// Launch browser based on configuration
+		String headlessProp = ConfigReader.get("headless");
+		boolean headless = headlessProp != null && headlessProp.equalsIgnoreCase("true");
 		BrowserType.LaunchOptions launchOptions = new BrowserType.LaunchOptions()
-			.setHeadless(false)
+			.setHeadless(headless)
 			.setArgs(java.util.Arrays.asList("--start-maximized")); // Start browser maximized
 
 		if (browserType.equalsIgnoreCase("chrome") || browserType.equalsIgnoreCase("chromium")) {
