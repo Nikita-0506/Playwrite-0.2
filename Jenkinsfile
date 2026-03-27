@@ -133,7 +133,8 @@ EOF
                         echo "📊 S3 Reports: ${url}"
 
                     } catch (Exception e) {
-                        echo "⚠️ S3 Upload skipped (AWS CLI not available): ${e.message}"
+                        echo "⚠️ S3 Upload Failed: ${e.message}"
+                        currentBuild.result = 'UNSTABLE'
                     }
                 }
             }
