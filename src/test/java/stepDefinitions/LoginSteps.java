@@ -22,7 +22,7 @@ public class LoginSteps {
 
 	String url = "";
 	private static final Logger log = LogManager.getLogger(LoginSteps.class);
-	private final int timeout = 15000; // 15 seconds in milliseconds
+	private final int timeout = 30000; // 30 seconds — increased for slower CI/Jenkins environments
 	BaseClass base;
 
 	public LoginSteps() {
