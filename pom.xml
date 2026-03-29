@@ -9,7 +9,7 @@
 	<description>BDD automation framework</description>
 
 	<properties>
-		<maven.compiler.release>21</maven.compiler.release>
+		<maven.compiler.release>25</maven.compiler.release>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
@@ -30,7 +30,7 @@
 		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
-			<version>7.7.0</version> 
+			<version>7.10.2</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -130,11 +130,11 @@
 			<version>2.19.0</version>
 		</dependency>
 
-		<!-- Lombok - explicit Java 21 compatible version to override transitive old version -->
+		<!-- Lombok - explicit Java 25 compatible version to override transitive old version -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>1.18.34</version>
+			<version>1.18.36</version>
 			<scope>provided</scope>
 		</dependency>
 
@@ -164,7 +164,7 @@
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.8.11</version>
+				<version>0.8.13</version>
 				<executions>
 					<!-- Injects JaCoCo agent before tests run -->
 					<execution>
