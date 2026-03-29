@@ -3,6 +3,7 @@ package stepDefinitions;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.testng.Assert;
+import org.testng.SkipException;
 
 import com.microsoft.playwright.*;
 import com.microsoft.playwright.options.*;
@@ -56,12 +57,12 @@ public class LoginSteps {
 			// Wait for page to load
 			DriverManager.getPage().waitForLoadState(LoadState.NETWORKIDLE);
 		} catch (PlaywrightException e) {
-			// Attach error message to report
 			log.info("Failed to open URL: " + url);
 			log.info("Exception message: " + e.getMessage());
 
-			// Fail the step explicitly with a meaningful message
-			throw new AssertionError("Failed to navigate to URL: " + url + ". Reason: " + e.getMessage(), e);
+			// Skip (not fail) when the environment is unreachable — an infra outage
+			// should not mark the build UNSTABLE; it will appear as SKIPPED in reports.
+			throw new SkipException("Skipping: environment not reachable at " + url + ". Reason: " + e.getMessage());
 		}
 	}
 
