@@ -297,15 +297,6 @@ EOF
                 reportName: 'Extent Report'
             ])
 
-            publishHTML([
-                allowMissing: true,
-                alwaysLinkToLastBuild: true,
-                keepAll: true,
-                reportDir: 'target/site/jacoco',
-                reportFiles: 'index.html',
-                reportName: 'JaCoCo Report'
-            ])
-
             archiveArtifacts artifacts: '**/target/**/*.*, **/test-output/**/*.*', allowEmptyArchive: true
 
             cleanWs()

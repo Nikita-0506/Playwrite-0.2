@@ -173,8 +173,8 @@
 							<goal>prepare-agent</goal>
 						</goals>
 					</execution>
-					<!-- Generates HTML/XML report at target/site/jacoco after verify -->
-					<!-- classesDirectory points to test-classes because this project has no src/main/java -->
+					<!-- JaCoCo report skipped: this project has no src/main/java;
+					     coverage reporting on test-only code is not meaningful. -->
 					<execution>
 						<id>report</id>
 						<phase>verify</phase>
@@ -182,8 +182,7 @@
 							<goal>report</goal>
 						</goals>
 						<configuration>
-							<!-- Use test-classes since this project has no src/main/java -->
-							<classesDirectory>${project.build.directory}/test-classes</classesDirectory>
+							<skip>true</skip>
 						</configuration>
 					</execution>
 				</executions>
