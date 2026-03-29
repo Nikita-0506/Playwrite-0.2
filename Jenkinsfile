@@ -268,7 +268,7 @@ EOF
                 }
             }
 
-            junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml'
+            junit allowEmptyResults: true, testResults: '**/target/surefire-reports/*.xml', skipPublishingChecks: true
 
             publishHTML([
                 allowMissing: true,
