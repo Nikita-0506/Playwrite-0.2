@@ -8,7 +8,7 @@ Feature: InsureCRM Login Validation
   Scenario: Validate login with valid credentials
     Given I am on InsureCRM page
     When User enters "admin"
-    And User enters password "dsr123!@#aA"
+    And User enters password "WRONG_PASSWORD_123"
     And User clicks on the login button
     Then User is logged in
 

@@ -21,11 +21,7 @@ public class BaseClass {
 	}
 
 	public String getLocator(String key) {
-		Object value = this.locators.get(key);
-		if (value == null) {
-			throw new IllegalArgumentException("Locator key not found: '" + key + "'");
-		}
-		return value.toString();
+		return this.locators.get(key).toString();
 	}
 
 	public String createDynamicQueryXpath(String string, String toBeReplacedKey, String replacedValue) {
