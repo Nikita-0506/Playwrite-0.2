@@ -136,6 +136,16 @@ pipeline {
                 echo '📤 Uploading reports to S3...'
                 script {
                     try {
+                        def awsCredStatus = isUnix()
+                            ? sh(script: "aws sts get-caller-identity --region ${AWS_REGION} >/dev/null 2>&1", returnStatus: true)
+                            : bat(script: "@aws sts get-caller-identity --region ${AWS_REGION} >NUL 2>&1", returnStatus: true)
+
+                        if (awsCredStatus != 0) {
+                            echo '⚠️ AWS credentials are not configured on this Jenkins agent. Skipping S3 upload stage.'
+                            currentBuild.result = currentBuild.result ?: 'UNSTABLE'
+                            return
+                        }
+
                         def shortCommit = isUnix()
                             ? sh(script: 'git rev-parse --short=7 HEAD', returnStdout: true).trim()
                             : bat(script: '@git rev-parse --short=7 HEAD', returnStdout: true).trim().readLines().last()
