@@ -79,6 +79,11 @@ public class DashboardSteps {
 		}
 	}
 
+	@When("User clicks on the user profile icon")
+	public void user_clicks_on_the_user_profile_icon() {
+		user_clicks_profile_menu();
+	}
+
 	@When("User clicks on the logout button")
 	public void user_clicks_logout_button() {
 		try {

@@ -112,7 +112,7 @@ def upload_to_mongodb():
     print("=" * 60)
     
     # MongoDB connection
-    mongo_uri = os.getenv('MONGO_URI', 'mongodb://admin:password123@localhost:27017')
+    mongo_uri = os.getenv('MONGO_URI', 'mongodb://127.0.0.1:27017')
     db_name = os.getenv('MONGO_DB', 'qa_test_results')
     collection_name = os.getenv('MONGO_COLLECTION', 'playwright_test_runs')
     
