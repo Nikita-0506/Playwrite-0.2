@@ -278,7 +278,9 @@ EOF
                 }
             }
 
-            junit allowEmptyResults: true, skipPublishingChecks: true, testResults: '**/target/surefire-reports/*.xml'
+            // Keep report publishing, but don't re-mark the build as UNSTABLE here.
+            // Test outcome is already decided in the Run Tests stage.
+            junit allowEmptyResults: true, skipPublishingChecks: true, skipMarkingBuildUnstable: true, testResults: '**/target/surefire-reports/*.xml'
 
             publishHTML([
                 allowMissing: true,
