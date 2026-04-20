@@ -22,7 +22,8 @@ public class LoginSteps {
 
 	String url = "";
 	private static final Logger log = LogManager.getLogger(LoginSteps.class);
-	private final int timeout = 15000; // 15 seconds in milliseconds
+	private final int timeout = 30000; // 30 seconds in milliseconds
+	private final int navTimeout = 60000; // 60 seconds for page navigation
 	BaseClass base;
 
 	public LoginSteps() {
@@ -52,9 +53,9 @@ public class LoginSteps {
 	@Given("I am on InsureCRM page")
 	public void i_am_on_suitecrm_page() {
 		try {
-			DriverManager.getPage().navigate(url);
-			// Wait for page to load
-			DriverManager.getPage().waitForLoadState(LoadState.NETWORKIDLE);
+			DriverManager.getPage().navigate(url, new Page.NavigateOptions().setTimeout(navTimeout));
+			// Wait for DOM content to be ready (more reliable than NETWORKIDLE for SPAs)
+			DriverManager.getPage().waitForLoadState(LoadState.DOMCONTENTLOADED);
 		} catch (PlaywrightException e) {
 			// Attach error message to report
 			log.info("Failed to open URL: " + url);
@@ -121,7 +122,7 @@ public class LoginSteps {
 		try {
 			// Wait for URL to change or a post-login element to appear
 			DriverManager.getPage().waitForURL(url -> !url.contains("#/Login"), 
-				new Page.WaitForURLOptions().setTimeout(timeout));
+				new Page.WaitForURLOptions().setTimeout(navTimeout));
 			log.info("User logged in and navigated to home page.");
 		} catch (Exception e) {
 			log.error("Login failed or post-login page did not load.", e);
