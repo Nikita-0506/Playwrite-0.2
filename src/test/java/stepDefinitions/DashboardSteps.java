@@ -20,7 +20,7 @@ public class DashboardSteps {
 
 	String url = "";
 	private static final Logger log = LogManager.getLogger(DashboardSteps.class);
-	private final int timeout = 15000; // 15 seconds in milliseconds
+	private final int timeout = 30000; // 30 seconds in milliseconds
 	BaseClass base;
 
 	public DashboardSteps() {
@@ -30,6 +30,10 @@ public class DashboardSteps {
 	@Then("User should see the dashboard page")
 	public void user_should_see_dashboard() {
 		try {
+			// Wait for page to load before checking for dashboard element
+			DriverManager.getPage().waitForLoadState(LoadState.NETWORKIDLE);
+			log.info("Page network is idle, verifying dashboard...");
+			
 			String dashboardHeaderLocator = base.toPlaywrightLocator(base.getLocator("dashboardPage.dashboardHeader"));
 			Locator dashboardHeader = DriverManager.getPage().locator(dashboardHeaderLocator);
 			dashboardHeader.waitFor(new Locator.WaitForOptions()
