@@ -4,9 +4,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.testng.Assert;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.microsoft.playwright.*;
 import com.microsoft.playwright.options.*;
 
@@ -33,57 +30,17 @@ public class DashboardSteps {
 	@Then("User should see the dashboard page")
 	public void user_should_see_dashboard() {
 		try {
-			DriverManager.getPage().waitForLoadState(LoadState.DOMCONTENTLOADED);
+			// Wait for page to load before checking for dashboard element
 			DriverManager.getPage().waitForLoadState(LoadState.NETWORKIDLE);
-
-			String[] dashboardIndicators = new String[] {
-				"dashboardPage.dashboardHeader",
-				"dashboardPage.sidebar",
-				"dashboardPage.header",
-				"dashboardPage.userProfileMenu"
-			};
-
-			boolean dashboardVisible = false;
-			String foundIndicator = "";
-			Page page = DriverManager.getPage();
-
-			for (String indicatorKey : dashboardIndicators) {
-				String locatorValue = base.toPlaywrightLocator(base.getLocator(indicatorKey));
-				Locator locator = page.locator(locatorValue);
-				if (locator.first().isVisible(new Locator.IsVisibleOptions().setTimeout(5000))) {
-					dashboardVisible = true;
-					foundIndicator = indicatorKey + " on main page";
-					break;
-				}
-			}
-
-			if (!dashboardVisible) {
-				for (Frame frame : page.frames()) {
-					for (String indicatorKey : dashboardIndicators) {
-						String locatorValue = base.toPlaywrightLocator(base.getLocator(indicatorKey));
-						Locator locator = frame.locator(locatorValue);
-						if (locator.first().isVisible(new Locator.IsVisibleOptions().setTimeout(3000))) {
-							dashboardVisible = true;
-							foundIndicator = indicatorKey + " in frame: " + frame.url();
-							break;
-						}
-					}
-					if (dashboardVisible) {
-						break;
-					}
-				}
-			}
-
-			if (!dashboardVisible) {
-				List<String> frameUrls = new ArrayList<>();
-				for (Frame frame : page.frames()) {
-					frameUrls.add(frame.url());
-				}
-				throw new AssertionError("Dashboard indicators not visible. Current URL: " + page.url() + ", Frames: " + frameUrls);
-			}
-
-			Assert.assertTrue(dashboardVisible, "Dashboard page is not visible");
-			log.info("Dashboard verified using indicator: " + foundIndicator);
+			log.info("Page network is idle, verifying dashboard...");
+			
+			String dashboardHeaderLocator = base.toPlaywrightLocator(base.getLocator("dashboardPage.dashboardHeader"));
+			Locator dashboardHeader = DriverManager.getPage().locator(dashboardHeaderLocator);
+			dashboardHeader.waitFor(new Locator.WaitForOptions()
+				.setState(WaitForSelectorState.VISIBLE)
+				.setTimeout(timeout));
+			Assert.assertTrue(dashboardHeader.isVisible(), "Dashboard page is not visible");
+			log.info("Dashboard page is visible");
 		} catch (Exception e) {
 			log.error("Failed to verify dashboard page.", e);
 			throw new AssertionError("Dashboard page verification failed: " + e.getMessage(), e);
