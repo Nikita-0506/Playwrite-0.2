@@ -20,7 +20,7 @@ public class DashboardSteps {
 
 	String url = "";
 	private static final Logger log = LogManager.getLogger(DashboardSteps.class);
-	private final int timeout = 30000; // 30 seconds in milliseconds
+	private final int timeout = 15000; // 15 seconds in milliseconds
 	BaseClass base;
 
 	public DashboardSteps() {
@@ -31,7 +31,6 @@ public class DashboardSteps {
 	public void user_should_see_dashboard() {
 		try {
 			DriverManager.getPage().waitForLoadState(LoadState.DOMCONTENTLOADED);
-			DriverManager.getPage().waitForLoadState(LoadState.NETWORKIDLE);
 			
 			String currentUrl = DriverManager.getPage().url();
 			log.info("Current URL after login: " + currentUrl);
@@ -103,7 +102,7 @@ public class DashboardSteps {
 				.setTimeout(timeout));
 			logoutButton.click();
 			log.info("Logout button clicked");
-			DriverManager.getPage().waitForLoadState(LoadState.NETWORKIDLE);
+			DriverManager.getPage().waitForLoadState(LoadState.DOMCONTENTLOADED);
 		} catch (Exception e) {
 			log.error("Failed to click logout button.", e);
 			throw new AssertionError("Logout button click failed: " + e.getMessage(), e);
@@ -226,7 +225,7 @@ public class DashboardSteps {
 		try {
 			DriverManager.getPage().goBack();
 			log.info("Browser back button clicked");
-			DriverManager.getPage().waitForLoadState(LoadState.NETWORKIDLE);
+			DriverManager.getPage().waitForLoadState(LoadState.DOMCONTENTLOADED);
 		} catch (Exception e) {
 			log.error("Failed to click browser back button.", e);
 			throw new AssertionError("Browser back button click failed: " + e.getMessage(), e);
