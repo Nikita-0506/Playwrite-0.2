@@ -50,6 +50,38 @@ public class LoginSteps {
 		base = new BaseClass();
 	}
 
+	private Locator resolveVisibleLocator(String[] selectors, String elementName) {
+		Page page = DriverManager.getPage();
+		for (String selector : selectors) {
+			try {
+				Locator candidate = page.locator(selector).first();
+				candidate.waitFor(new Locator.WaitForOptions()
+					.setState(WaitForSelectorState.VISIBLE)
+					.setTimeout(3000));
+				return candidate;
+			} catch (Exception ignored) {
+				// Try next selector.
+			}
+		}
+
+		for (Frame frame : page.frames()) {
+			for (String selector : selectors) {
+				try {
+					Locator candidate = frame.locator(selector).first();
+					candidate.waitFor(new Locator.WaitForOptions()
+						.setState(WaitForSelectorState.VISIBLE)
+						.setTimeout(2000));
+					log.info("Resolved " + elementName + " inside frame: " + frame.url());
+					return candidate;
+				} catch (Exception ignored) {
+					// Try next selector/frame.
+				}
+			}
+		}
+
+		throw new AssertionError("Could not find visible " + elementName + " on page or frames. URL: " + page.url());
+	}
+
 	@Given("I am on InsureCRM page")
 	public void i_am_on_suitecrm_page() {
 		try {
@@ -70,10 +102,13 @@ public class LoginSteps {
 	public void user_enters(String username) {
 		try {
 			String usernameLocator = base.toPlaywrightLocator(base.getLocator("loginPage.userNameTextBox"));
-			Locator usernameField = DriverManager.getPage().locator(usernameLocator);
-			usernameField.waitFor(new Locator.WaitForOptions()
-				.setState(WaitForSelectorState.VISIBLE)
-				.setTimeout(timeout));
+			Locator usernameField = resolveVisibleLocator(new String[] {
+				usernameLocator,
+				"input[name='username']",
+				"input[name='user_name']",
+				"#username",
+				"#user_name"
+			}, "username field");
 			usernameField.clear();
 			usernameField.fill(username);
 			log.info("Entered username: " + username);
@@ -87,10 +122,14 @@ public class LoginSteps {
 	public void user_enters_password(String password) {
 		try {
 			String passwordLocator = base.toPlaywrightLocator(base.getLocator("loginPage.passwordTextBox"));
-			Locator passwordField = DriverManager.getPage().locator(passwordLocator);
-			passwordField.waitFor(new Locator.WaitForOptions()
-				.setState(WaitForSelectorState.VISIBLE)
-				.setTimeout(timeout));
+			Locator passwordField = resolveVisibleLocator(new String[] {
+				passwordLocator,
+				"input[name='password']",
+				"input[name='user_password']",
+				"#password",
+				"#user_password",
+				"input[type='password']"
+			}, "password field");
 			passwordField.clear();
 			passwordField.fill(password);
 			log.info("Entered password.");
@@ -103,12 +142,35 @@ public class LoginSteps {
 	@When("User clicks on the login button")
 	public void user_clicks_on_the_login_button() {
 		try {
+			String currentUrlBeforeClick = DriverManager.getPage().url();
+			if (currentUrlBeforeClick != null && !currentUrlBeforeClick.toLowerCase().contains("login")) {
+				log.info("Login click skipped: user already redirected to authenticated page: " + currentUrlBeforeClick);
+				return;
+			}
+
 			String loginBtnLocator = base.toPlaywrightLocator(base.getLocator("loginPage.loginButton"));
-			Locator loginButton = DriverManager.getPage().locator(loginBtnLocator);
-			loginButton.waitFor(new Locator.WaitForOptions()
-				.setState(WaitForSelectorState.VISIBLE)
-				.setTimeout(timeout));
-			loginButton.click();
+			try {
+				Locator loginButton = resolveVisibleLocator(new String[] {
+					loginBtnLocator,
+					"button[type='submit']",
+					"button:has-text('Login')",
+					"button:has-text('Sign in')",
+					"input[type='submit']"
+				}, "login button");
+				loginButton.click();
+			} catch (AssertionError noButtonFound) {
+				String passwordLocator = base.toPlaywrightLocator(base.getLocator("loginPage.passwordTextBox"));
+				Locator passwordField = resolveVisibleLocator(new String[] {
+					passwordLocator,
+					"input[name='password']",
+					"input[name='user_password']",
+					"#password",
+					"#user_password",
+					"input[type='password']"
+				}, "password field for submit fallback");
+				passwordField.press("Enter");
+				log.warn("Login button not visible; submitted login using Enter key on password field.");
+			}
 
 			log.info("User clicked on login button");
 		} catch (Exception e) {

@@ -312,7 +312,7 @@ EOF
                 alwaysLinkToLastBuild: true,
                 keepAll: true,
                 reportDir: 'target/cucumber-reports',
-                reportFiles: 'overview-features.html,feature-overview.html,index.html',
+                reportFiles: 'cucumber.html,overview-features.html,feature-overview.html,index.html',
                 reportName: 'Cucumber Report'
             ])
 
