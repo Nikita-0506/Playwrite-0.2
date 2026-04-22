@@ -13,6 +13,16 @@ pipeline {
     parameters {
         choice(name: 'BROWSER', choices: ['Chrome', 'Firefox'], description: 'Select browser')
         choice(name: 'ENV', choices: ['QA', 'DEV', 'PROD'], description: 'Select environment')
+        booleanParam(name: 'AUTO_MODE', defaultValue: true, description: 'Auto-select tags by branch (recommended)')
+        choice(name: 'TAGS', choices: [
+            '@SMOKE',
+            '@REGRESSION',
+            '@SANITY',
+            '@SMOKE or @REGRESSION',
+            '@SMOKE or @SANITY',
+            '@REGRESSION or @SANITY',
+            '@SMOKE or @REGRESSION or @SANITY'
+        ], description: 'Cucumber tag expression to run')
     }
 
     environment {
@@ -55,10 +65,25 @@ pipeline {
             steps {
                 echo "🧪 Running Tests on ${params.BROWSER} in ${params.ENV}"
                 script {
+                    String autoTags = '@SMOKE'
+                    String branchName = (env.BRANCH_NAME ?: '').toLowerCase()
+
+                    // Fully automated selection: feature branches run smoke, main/release run broader suites.
+                    if (branchName == 'main' || branchName == 'master') {
+                        autoTags = '@SMOKE or @REGRESSION or @SANITY'
+                    } else if (branchName.startsWith('release/')) {
+                        autoTags = '@SMOKE or @REGRESSION'
+                    }
+
+                    String selectedTags = params.AUTO_MODE ? autoTags : params.TAGS
+                    env.SELECTED_TAGS = selectedTags
+                    echo "🏷️ Tag Selection: ${selectedTags} (AUTO_MODE=${params.AUTO_MODE}, BRANCH=${env.BRANCH_NAME ?: 'N/A'})"
+
+                    // -Dcucumber.filter.tags lets Jenkins control which scenarios run by tag.
                     // -Dmaven.test.failure.ignore=true ensures Maven always completes,
                     // writes all Surefire/Cucumber XML reports, and generates Extent Report
                     // even when tests fail — so downstream stages (S3 upload) always run.
-                    def mvnCmd = "mvn clean verify -Dbrowser=${params.BROWSER} -Denv=${params.ENV} " +
+                    def mvnCmd = "mvn clean verify -Dbrowser=${params.BROWSER} -Denv=${params.ENV} -Dcucumber.filter.tags=\"${selectedTags}\" " +
                                  "-Dmaven.test.failure.ignore=true -Dsurefire.failIfNoSpecifiedTests=false"
 
                     def status
@@ -287,7 +312,7 @@ EOF
                 alwaysLinkToLastBuild: true,
                 keepAll: true,
                 reportDir: 'target/cucumber-reports',
-                reportFiles: 'index.html',
+                reportFiles: 'overview-features.html,feature-overview.html,index.html',
                 reportName: 'Cucumber Report'
             ])
 

@@ -50,7 +50,7 @@ public class DashboardSteps {
 	public void user_should_see_welcome_message() {
 		try {
 			String welcomeMessageLocator = base.toPlaywrightLocator(base.getLocator("dashboardPage.welcomeMessage"));
-			Locator welcomeMessage = DriverManager.getPage().locator(welcomeMessageLocator);
+			Locator welcomeMessage = DriverManager.getPage().locator(welcomeMessageLocator).first();
 			
 			if (welcomeMessage.count() > 0) {
 				try {
@@ -74,7 +74,7 @@ public class DashboardSteps {
 	public void user_clicks_profile_menu() {
 		try {
 			String profileMenuLocator = base.toPlaywrightLocator(base.getLocator("dashboardPage.userProfileMenu"));
-			Locator profileMenu = DriverManager.getPage().locator(profileMenuLocator);
+			Locator profileMenu = DriverManager.getPage().locator(profileMenuLocator).first();
 			profileMenu.waitFor(new Locator.WaitForOptions()
 				.setState(WaitForSelectorState.VISIBLE)
 				.setTimeout(timeout));
@@ -96,7 +96,7 @@ public class DashboardSteps {
 	public void user_clicks_logout_button() {
 		try {
 			String logoutButtonLocator = base.toPlaywrightLocator(base.getLocator("dashboardPage.logoutButton"));
-			Locator logoutButton = DriverManager.getPage().locator(logoutButtonLocator);
+			Locator logoutButton = DriverManager.getPage().locator(logoutButtonLocator).first();
 			logoutButton.waitFor(new Locator.WaitForOptions()
 				.setState(WaitForSelectorState.VISIBLE)
 				.setTimeout(timeout));
@@ -153,7 +153,7 @@ public class DashboardSteps {
 	public void user_should_see_element(String elementName) {
 		try {
 			String elementLocator = base.toPlaywrightLocator(base.getLocator("dashboardPage." + elementName));
-			Locator element = DriverManager.getPage().locator(elementLocator);
+			Locator element = DriverManager.getPage().locator(elementLocator).first();
 			element.waitFor(new Locator.WaitForOptions()
 				.setState(WaitForSelectorState.VISIBLE)
 				.setTimeout(timeout));
@@ -170,7 +170,7 @@ public class DashboardSteps {
 		try {
 			// Verify sidebar
 			String sidebarLocator = base.toPlaywrightLocator(base.getLocator("dashboardPage.sidebar"));
-			Locator sidebar = DriverManager.getPage().locator(sidebarLocator);
+			Locator sidebar = DriverManager.getPage().locator(sidebarLocator).first();
 			sidebar.waitFor(new Locator.WaitForOptions()
 				.setState(WaitForSelectorState.VISIBLE)
 				.setTimeout(timeout));
@@ -179,7 +179,7 @@ public class DashboardSteps {
 
 			// Verify header
 			String headerLocator = base.toPlaywrightLocator(base.getLocator("dashboardPage.header"));
-			Locator header = DriverManager.getPage().locator(headerLocator);
+			Locator header = DriverManager.getPage().locator(headerLocator).first();
 			header.waitFor(new Locator.WaitForOptions()
 				.setState(WaitForSelectorState.VISIBLE)
 				.setTimeout(timeout));
@@ -188,7 +188,7 @@ public class DashboardSteps {
 
 			// Verify profile icon
 			String profileIconLocator = base.toPlaywrightLocator(base.getLocator("dashboardPage.user profile icon"));
-			Locator profileIcon = DriverManager.getPage().locator(profileIconLocator);
+			Locator profileIcon = DriverManager.getPage().locator(profileIconLocator).first();
 			profileIcon.waitFor(new Locator.WaitForOptions()
 				.setState(WaitForSelectorState.VISIBLE)
 				.setTimeout(timeout));
@@ -205,7 +205,7 @@ public class DashboardSteps {
 	public void user_profile_information_displayed() {
 		try {
 			String profileInfoLocator = base.toPlaywrightLocator(base.getLocator("dashboardPage.userProfileInfo"));
-			Locator profileInfo = DriverManager.getPage().locator(profileInfoLocator);
+			Locator profileInfo = DriverManager.getPage().locator(profileInfoLocator).first();
 			profileInfo.waitFor(new Locator.WaitForOptions()
 				.setState(WaitForSelectorState.VISIBLE)
 				.setTimeout(timeout));
@@ -251,7 +251,7 @@ public class DashboardSteps {
 			} else {
 				// Additional check - look for access denied message
 				String accessDeniedLocator = base.toPlaywrightLocator(base.getLocator("dashboardPage.accessDeniedMessage"));
-				Locator accessDenied = DriverManager.getPage().locator(accessDeniedLocator);
+				Locator accessDenied = DriverManager.getPage().locator(accessDeniedLocator).first();
 				
 				if (accessDenied.count() > 0 && accessDenied.isVisible()) {
 					log.info("Session is invalidated - access denied message shown");

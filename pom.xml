@@ -153,6 +153,29 @@
 					</suiteXmlFiles>
 				</configuration>				
 			</plugin>
+			<plugin>
+				<groupId>net.masterthought</groupId>
+				<artifactId>maven-cucumber-reporting</artifactId>
+				<version>5.8.4</version>
+				<executions>
+					<execution>
+						<id>generate-cucumber-html-report</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<projectName>${project.name}</projectName>
+							<outputDirectory>${project.build.directory}/cucumber-reports</outputDirectory>
+							<inputDirectory>${project.build.directory}/cucumber-reports</inputDirectory>
+							<jsonFiles>
+								<param>Cucumber.json</param>
+							</jsonFiles>
+							<skipEmptyJSONFiles>true</skipEmptyJSONFiles>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
