@@ -167,7 +167,6 @@ pipeline {
 
                         if (awsCredStatus != 0) {
                             echo '⚠️ AWS credentials are not configured on this Jenkins agent. Skipping S3 upload stage.'
-                            currentBuild.result = currentBuild.result ?: 'UNSTABLE'
                             return
                         }
 

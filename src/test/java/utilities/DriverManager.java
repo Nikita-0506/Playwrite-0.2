@@ -16,14 +16,16 @@ public class DriverManager {
 	// Initialize Playwright and browser for current thread
 	public static void initDriver() {
 		String browserType = ConfigReader.get("browser");
+		boolean isCi = System.getenv("JENKINS_URL") != null || System.getenv("CI") != null;
+		boolean headless = isCi;
 
 		// Create Playwright instance
 		playwright.set(Playwright.create());
 
 		// Launch browser based on configuration
 		BrowserType.LaunchOptions launchOptions = new BrowserType.LaunchOptions()
-			.setHeadless(false)
-			.setArgs(java.util.Arrays.asList("--start-maximized")); // Start browser maximized
+			.setHeadless(headless)
+			.setArgs(java.util.Arrays.asList("--disable-dev-shm-usage", "--no-sandbox"));
 
 		if (browserType.equalsIgnoreCase("chrome") || browserType.equalsIgnoreCase("chromium")) {
 			browser.set(playwright.get().chromium().launch(launchOptions));
@@ -37,9 +39,9 @@ public class DriverManager {
 			throw new RuntimeException("Unsupported browser: " + browserType);
 		}
 
-		// Create browser context with viewport settings
+		// Create browser context with deterministic desktop viewport for CI stability.
 		Browser.NewContextOptions contextOptions = new Browser.NewContextOptions()
-			.setViewportSize(null); // Use null to respect browser window size
+			.setViewportSize(1920, 1080);
 		
 		context.set(browser.get().newContext(contextOptions));
 		
