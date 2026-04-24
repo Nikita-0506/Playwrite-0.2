@@ -1,6 +1,7 @@
 package utilities;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 //@Author: neha.verma@inadev.com
@@ -11,12 +12,13 @@ public class BaseClass {
 	private final Properties locators = new Properties();
 
 	public BaseClass() {
-		try {
-			locators.load(getClass().getClassLoader().getResourceAsStream("repository/locators.properties"));
-
+		try (InputStream input = getClass().getClassLoader().getResourceAsStream("repository/locators.properties")) {
+			if (input == null) {
+				throw new IllegalStateException("Unable to load repository/locators.properties from classpath");
+			}
+			locators.load(input);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new IllegalStateException("Failed to read repository/locators.properties", e);
 		}
 	}
 
