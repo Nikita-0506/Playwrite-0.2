@@ -27,7 +27,9 @@ public class DriverManager {
 			.setHeadless(headless)
 			.setArgs(java.util.Arrays.asList("--disable-dev-shm-usage", "--no-sandbox"));
 
-		if (browserType.equalsIgnoreCase("chrome") || browserType.equalsIgnoreCase("chromium")) {
+		if (browserType.equalsIgnoreCase("chrome")) {
+			browser.set(playwright.get().chromium().launch(launchOptions.setChannel("chrome")));
+		} else if (browserType.equalsIgnoreCase("chromium")) {
 			browser.set(playwright.get().chromium().launch(launchOptions));
 		} else if (browserType.equalsIgnoreCase("firefox")) {
 			browser.set(playwright.get().firefox().launch(launchOptions));

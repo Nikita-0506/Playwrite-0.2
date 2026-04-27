@@ -16,12 +16,8 @@ pipeline {
         booleanParam(name: 'AUTO_MODE', defaultValue: true, description: 'Auto-select tags by branch (recommended)')
         choice(name: 'TAGS', choices: [
             '@SMOKE',
-            '@REGRESSION',
-            '@SANITY',
-            '@SMOKE or @REGRESSION',
-            '@SMOKE or @SANITY',
-            '@REGRESSION or @SANITY',
-            '@SMOKE or @REGRESSION or @SANITY'
+            '@TEMPLATES',
+            '@SMOKE or @TEMPLATES'
         ], description: 'Cucumber tag expression to run')
     }
 
@@ -68,11 +64,9 @@ pipeline {
                     String autoTags = '@SMOKE'
                     String branchName = (env.BRANCH_NAME ?: '').toLowerCase()
 
-                    // Fully automated selection: feature branches run smoke, main/release run broader suites.
-                    if (branchName == 'main' || branchName == 'master') {
-                        autoTags = '@SMOKE or @REGRESSION or @SANITY'
-                    } else if (branchName.startsWith('release/')) {
-                        autoTags = '@SMOKE or @REGRESSION'
+                    // Templates scenarios are included in the standard suite.
+                    if (branchName == 'main' || branchName == 'master' || branchName.startsWith('release/')) {
+                        autoTags = '@SMOKE or @TEMPLATES'
                     }
 
                     String selectedTags = params.AUTO_MODE ? autoTags : params.TAGS

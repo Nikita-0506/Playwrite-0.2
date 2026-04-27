@@ -23,7 +23,8 @@ public class LoginSteps {
 	String url = "";
 	private static final Logger log = LogManager.getLogger(LoginSteps.class);
 	private final int timeout = 15000; // 15 seconds in milliseconds
-	private final int navTimeout = 15000; // 15 seconds for page navigation
+	private final int navTimeout = Integer.parseInt(System.getProperty("navTimeoutMs",
+		ConfigReader.get("navTimeoutMs") != null ? ConfigReader.get("navTimeoutMs") : "45000"));
 	BaseClass base;
 
 	public LoginSteps() {
@@ -84,16 +85,44 @@ public class LoginSteps {
 
 	@Given("I am on InsureCRM page")
 	public void i_am_on_suitecrm_page() {
+		PlaywrightException lastError = null;
 		try {
-			DriverManager.getPage().navigate(url, new Page.NavigateOptions().setTimeout(navTimeout));
-			// Wait for DOM content to be ready (more reliable than NETWORKIDLE for SPAs)
-			DriverManager.getPage().waitForLoadState(LoadState.DOMCONTENTLOADED);
-		} catch (PlaywrightException e) {
-			// Attach error message to report
-			log.info("Failed to open URL: " + url);
-			log.info("Exception message: " + e.getMessage());
+			Page page = DriverManager.getPage();
+			for (int attempt = 1; attempt <= 2; attempt++) {
+				try {
+					page.navigate(url, new Page.NavigateOptions()
+						.setWaitUntil(WaitUntilState.DOMCONTENTLOADED)
+						.setTimeout(navTimeout));
 
-			// Fail the step explicitly with a meaningful message
+					String usernameLocator = base.toPlaywrightLocator(base.getLocator("loginPage.userNameTextBox"));
+					page.locator(usernameLocator).first().waitFor(new Locator.WaitForOptions()
+						.setState(WaitForSelectorState.VISIBLE)
+						.setTimeout(navTimeout));
+
+					log.info("Successfully opened login page on attempt " + attempt);
+					return;
+				} catch (PlaywrightException e) {
+					lastError = e;
+					log.warn("Attempt " + attempt + " to open login page failed: " + e.getMessage());
+
+					if (attempt < 2) {
+						try {
+							if (page != null && !page.isClosed()) {
+								page.close();
+							}
+						} catch (Exception ignored) {
+							// Ignore close failures and proceed with a fresh page.
+						}
+						page = DriverManager.getContext().newPage();
+					}
+				}
+			}
+
+			String reason = lastError != null ? lastError.getMessage() : "Unknown navigation error";
+			throw new AssertionError("Failed to navigate to URL after retry: " + url + ". Reason: " + reason, lastError);
+		} catch (AssertionError e) {
+			throw e;
+		} catch (Exception e) {
 			throw new AssertionError("Failed to navigate to URL: " + url + ". Reason: " + e.getMessage(), e);
 		}
 	}
