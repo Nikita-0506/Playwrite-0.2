@@ -12,7 +12,7 @@ import utilities.RetryFailure;
 
 //testing -----------hello
 @CucumberOptions(features="src/test/java/features",glue ={"stepDefinitions","utilities"}
-,monochrome=true, tags ="@SMOKE or @TEMPLATES",
+,monochrome=true, tags ="@SMOKE or @TEMPLATES or @OPPORTUNITIES",
 plugin= {"json:target/cucumber-reports/Cucumber.json","html:target/cucumber-reports/cucumber.html","com.aventstack.extentreports.cucumber.adapter.ExtentCucumberAdapter:"})
 public class TestNGTestRunner extends AbstractTestNGCucumberTests{
 
