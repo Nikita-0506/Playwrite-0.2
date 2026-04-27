@@ -17,7 +17,11 @@ pipeline {
         choice(name: 'TAGS', choices: [
             '@SMOKE',
             '@TEMPLATES',
-            '@SMOKE or @TEMPLATES'
+            '@OPPORTUNITIES',
+            '@SMOKE or @TEMPLATES',
+            '@SMOKE or @OPPORTUNITIES',
+            '@TEMPLATES or @OPPORTUNITIES',
+            '@SMOKE or @TEMPLATES or @OPPORTUNITIES'
         ], description: 'Cucumber tag expression to run')
     }
 
@@ -64,9 +68,9 @@ pipeline {
                     String autoTags = '@SMOKE'
                     String branchName = (env.BRANCH_NAME ?: '').toLowerCase()
 
-                    // Templates scenarios are included in the standard suite.
+                    // Templates and opportunities scenarios are included in the standard suite.
                     if (branchName == 'main' || branchName == 'master' || branchName.startsWith('release/')) {
-                        autoTags = '@SMOKE or @TEMPLATES'
+                        autoTags = '@SMOKE or @TEMPLATES or @OPPORTUNITIES'
                     }
 
                     String selectedTags = params.AUTO_MODE ? autoTags : params.TAGS
