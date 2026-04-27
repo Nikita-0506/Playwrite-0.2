@@ -6,7 +6,7 @@ import io.cucumber.testng.AbstractTestNGCucumberTests;
 import io.cucumber.testng.CucumberOptions;
 import utilities.RetryFailure;
 
-//@Author: neha.verma@inadev.com
+//@Author: neha.verma@inadev.co
 //@Date: 3 Feb 2026
 //@Desc: This class holds runner class configurations
 
